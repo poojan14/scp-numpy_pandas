@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class Dashboard · Scientific Python Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#FFFFFF; --surface:#F5F7FA; --line:#DCE3EB; --ink:#1A2433; --ink-2:#4A5568; --muted:#6B778A; --blue:#1F4E8C; --blue-soft:#E7EFF9; --green:#2E7D5B; --green-soft:#E6F3EC; --red:#B4472F; --red-soft:#FBEAE5; --amber:#8A5A00; --amber-soft:#FFF4D6;
+  --serif:"Source Serif 4", Georgia, serif; --sans:"Source Sans 3", "Segoe UI", Arial, sans-serif; --mono:"Source Code Pro", Consolas, monospace; color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151A21; --surface:#1C232C; --line:#2F3B49; --ink:#E6EBF1; --ink-2:#B8C2CF; --muted:#8C99A9; --blue:#7FAEE8; --blue-soft:#1F3049; --green:#6CC59B; --green-soft:#1C3328; --red:#EC8A72; --red-soft:#3A2420; --amber:#E8B95A; --amber-soft:#3A3018; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151A21; --surface:#1C232C; --line:#2F3B49; --ink:#E6EBF1; --ink-2:#B8C2CF; --muted:#8C99A9; --blue:#7FAEE8; --blue-soft:#1F3049; --green:#6CC59B; --green-soft:#1C3328; --red:#EC8A72; --red-soft:#3A2420; --amber:#E8B95A; --amber-soft:#3A3018; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.5}
+button,input,select{font:inherit; color:inherit}
+.top{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 18px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:5}
+.top h1{font-family:var(--serif); font-size:20px; margin:0; flex:1; min-width:200px}
+.who{color:var(--muted); font-size:14px}
+main{padding:18px; max-width:1500px; margin:0 auto}
+.card{border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--surface); max-width:640px}
+.btn{border:1px solid var(--blue); background:var(--blue); color:#fff; border-radius:8px; padding:6px 14px; cursor:pointer; font-weight:600; font-size:15px}
+.btn.ghost{background:transparent; color:var(--blue); border-color:var(--line)}
+.stats{display:flex; gap:26px; flex-wrap:wrap; margin:6px 0 14px}
+.stats b{display:block; font-family:var(--serif); font-size:30px; color:var(--blue); line-height:1.1}
+.stats span{font-size:14px; color:var(--ink-2)}
+.tools{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0}
+.tools input,.tools select{border:1px solid var(--line); border-radius:8px; padding:6px 10px; background:var(--bg)}
+.tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); margin:14px 0 10px}
+.tabs button{border:0; background:none; padding:8px 14px; cursor:pointer; border-bottom:3px solid transparent; font-weight:600; color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--blue); border-color:var(--blue)}
+.wrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px}
+table{border-collapse:collapse; width:100%; font-size:14.5px}
+th,td{padding:6px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap}
+th{background:var(--surface); position:sticky; top:0; cursor:pointer; user-select:none; font-size:13px; color:var(--ink-2)}
+tbody tr:hover{background:var(--surface)}
+td.num{text-align:right; font-variant-numeric:tabular-nums}
+.bar{display:inline-block; width:80px; height:8px; background:var(--line); border-radius:99px; overflow:hidden; vertical-align:middle; margin-right:6px}
+.bar i{display:block; height:100%; background:var(--green)}
+.link{color:var(--blue); cursor:pointer; text-decoration:underline}
+.heat{display:inline-block; min-width:44px; text-align:center; border-radius:4px; padding:0 4px}
+dialog{border:1px solid var(--line); border-radius:12px; padding:0; width:min(1000px,96vw); max-height:90vh; background:var(--bg); color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dh{display:flex; gap:10px; align-items:center; padding:12px 18px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg)}
+.dh h2{margin:0; font-size:19px; flex:1; font-family:var(--serif)}
+.db{padding:14px 18px 22px}
+.les{margin:14px 0 4px; font-weight:700}
+.it{display:grid; grid-template-columns:70px 1fr 110px 90px; gap:8px; padding:4px 0; border-bottom:1px dashed var(--line); font-size:14.5px; align-items:start}
+.ok{color:var(--green); font-weight:600} .tr{color:var(--amber)} .no{color:var(--muted)}
+pre.code{grid-column:1/-1; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin:4px 0 8px; font-family:var(--mono); font-size:13px; white-space:pre-wrap}
+.muted{color:var(--muted)}
+.toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:8px 16px; border-radius:8px; opacity:0; transition:opacity .2s; pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header class="top"><h1>Scientific Python Lab · Class dashboard</h1><span class="who" id="who"></span><span id="topBtns"></span><a class="btn ghost" href="index.html">Open site</a></header>
+<main id="main"><p class="muted">Loading…</p></main>
+<dialog id="dlg"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script type="module">
+const V = "10.12.2";
+const P = window.COLLECTION_PREFIX || "sp_";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); };
+const C = window.COURSE;
+const ITEMS = {}; C.forEach(L => { L.tasks.forEach((t, i) => ITEMS[t.id] = { kind: "task", L, n: i + 1, title: t.t }); L.mcq.forEach((q, i) => ITEMS[q.id] = { kind: "mcq", L, n: i + 1, title: "Quick check " + (i + 1) }); });
+const IDS = Object.keys(ITEMS), TASKS = IDS.filter(i => ITEMS[i].kind === "task"), MCQS = IDS.filter(i => ITEMS[i].kind === "mcq");
+const PARTS = [...new Set(C.map(L => L.part))];
+const partIds = p => IDS.filter(i => ITEMS[i].L.part === p);
+const main = $("#main");
+const cfg = window.FIREBASE_CONFIG || {};
+if (!cfg.apiKey || String(cfg.apiKey).startsWith("PASTE")) { main.innerHTML = `<div class="card"><h2>Not connected</h2><p>Paste your Firebase web config into <code>config.js</code> first. See SETUP.md.</p></div>`; throw new Error("no config"); }
+
+const A = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+const U = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`);
+const D = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+const app = A.initializeApp(cfg, "sp-dash"); const auth = U.getAuth(app); const db = D.getFirestore(app);
+const provider = new U.GoogleAuthProvider(); provider.setCustomParameters({ prompt: "select_account" });
+try { await U.getRedirectResult(auth); } catch (e) {}
+
+let ROWS = [], SORT = { k: "enrollment", dir: 1 }, TAB = "students";
+
+U.onAuthStateChanged(auth, async u => {
+  if (!u) {
+    $("#who").textContent = ""; $("#topBtns").innerHTML = "";
+    main.innerHTML = `<div class="card"><h2>Teacher sign-in</h2><p>Sign in with a teacher Google account listed in the Firestore rules.</p><button class="btn" id="si">Sign in with Google</button></div>`;
+    $("#si").onclick = async () => { try { await U.signInWithPopup(auth, provider); } catch (e) { if (e.code === "auth/popup-blocked") U.signInWithRedirect(auth, provider); else toast(e.code || e.message); } };
+    return;
+  }
+  $("#who").textContent = u.email;
+  $("#topBtns").innerHTML = `<button class="btn ghost" id="so">Sign out</button>`;
+  $("#so").onclick = () => U.signOut(auth);
+  main.innerHTML = `<p class="muted">Loading class data…</p>`;
+  try { await load(); }
+  catch (e) {
+    console.error(e);
+    main.innerHTML = `<div class="card"><h2>Not authorised</h2><p>${esc(u.email)} is not a teacher account for this site, or the rules are not published. Add the email to <code>spIsTeacher()</code> in firestore.rules and publish the rules.</p><p class="muted">${esc(e.code || e.message)}</p></div>`;
+  }
+});
+
+async function load(){
+  const [us, ps] = await Promise.all([D.getDocs(D.collection(db, P + "users")), D.getDocs(D.collection(db, P + "progress"))]);
+  const prog = {}; ps.forEach(d => prog[d.id] = d.data());
+  ROWS = us.docs.map(d => {
+    const u = d.data(), items = (prog[d.id] && prog[d.id].items) || {};
+    const ok = id => items[id] && items[id].ok;
+    const r = { uid: d.id, name: u.name, enrollment: u.enrollment, division: u.division || "", email: u.email, items,
+      tasks: TASKS.filter(ok).length, mcq: MCQS.filter(ok).length,
+      tries: Object.values(items).reduce((a, x) => a + (x.tries || 0), 0),
+      last: Math.max(0, ...Object.values(items).map(x => x.at || 0)) };
+    r.pct = Math.round(100 * (r.tasks + r.mcq) / IDS.length);
+    PARTS.forEach(p => { const ids = partIds(p); r["p_" + p] = Math.round(100 * ids.filter(ok).length / ids.length); });
+    return r;
+  });
+  render();
+}
+
+function render(){
+  const n = ROWS.length, avg = n ? Math.round(ROWS.reduce((a, r) => a + r.pct, 0) / n) : 0;
+  const active = ROWS.filter(r => r.last > Date.now() - 86400000).length;
+  const divs = [...new Set(ROWS.map(r => r.division).filter(Boolean))].sort();
+  main.innerHTML = `
+    <div class="stats"><div><b>${n}</b><span>registered students</span></div><div><b>${avg}%</b><span>average completion</span></div><div><b>${active}</b><span>active in last 24 h</span></div><div><b>${TASKS.length} + ${MCQS.length}</b><span>tasks + quick checks</span></div></div>
+    <div class="tools"><input id="q" placeholder="Search name, enrollment, email" size="30">
+      <select id="dv"><option value="">All divisions</option>${divs.map(d => `<option>${esc(d)}</option>`).join("")}</select>
+      <button class="btn ghost" id="rl">Reload</button><button class="btn ghost" id="csv">Export CSV</button></div>
+    <div class="tabs" role="tablist"><button role="tab" data-t="students" aria-selected="${TAB === "students"}">Students</button><button role="tab" data-t="tasks" aria-selected="${TAB === "tasks"}">Task difficulty</button><button role="tab" data-t="lessons" aria-selected="${TAB === "lessons"}">Lesson completion</button></div>
+    <div id="view"></div>`;
+  $("#q").oninput = draw; $("#dv").onchange = draw;
+  $("#rl").onclick = async () => { main.innerHTML = `<p class="muted">Reloading…</p>`; await load(); };
+  $("#csv").onclick = exportCsv;
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { TAB = b.dataset.t; render(); });
+  draw();
+}
+function filtered(){
+  const q = ($("#q")?.value || "").toLowerCase(), dv = $("#dv")?.value || "";
+  return ROWS.filter(r => (!dv || r.division === dv) && (!q || [r.name, r.enrollment, r.email].join(" ").toLowerCase().includes(q)));
+}
+const fmt = t => t ? new Date(t).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "–";
+function draw(){
+  const rows = filtered(), v = $("#view");
+  if (TAB === "students") {
+    const cols = [["name", "Name"], ["enrollment", "Enrollment"], ["division", "Division"], ["tasks", `Tasks /${TASKS.length}`], ["mcq", `Quick /${MCQS.length}`], ["pct", "Overall"], ...PARTS.map(p => ["p_" + p, p]), ["tries", "Checks"], ["last", "Last active"]];
+    rows.sort((a, b) => { const x = a[SORT.k], y = b[SORT.k]; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true })) * SORT.dir; });
+    v.innerHTML = `<div class="wrap"><table><thead><tr>${cols.map(([k, l]) => `<th data-k="${k}">${esc(l)}${SORT.k === k ? (SORT.dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>
+      <td><span class="link" data-uid="${r.uid}">${esc(r.name)}</span><br><span class="muted" style="font-size:12.5px">${esc(r.email)}</span></td><td>${esc(r.enrollment)}</td><td>${esc(r.division)}</td>
+      <td class="num">${r.tasks}</td><td class="num">${r.mcq}</td><td><span class="bar"><i style="width:${r.pct}%"></i></span>${r.pct}%</td>
+      ${PARTS.map(p => `<td class="num">${r["p_" + p]}%</td>`).join("")}<td class="num">${r.tries}</td><td>${fmt(r.last)}</td></tr>`).join("") || `<tr><td colspan="${cols.length}" class="muted">No students yet.</td></tr>`}</tbody></table></div>`;
+    v.querySelectorAll("th").forEach(th => th.onclick = () => { const k = th.dataset.k; SORT = { k, dir: SORT.k === k ? -SORT.dir : (["name", "enrollment", "division"].includes(k) ? 1 : -1) }; draw(); });
+    v.querySelectorAll("[data-uid]").forEach(s => s.onclick = () => detail(ROWS.find(r => r.uid === s.dataset.uid)));
+  } else if (TAB === "tasks") {
+    const n = rows.length || 1;
+    const stat = IDS.map(id => { const att = rows.filter(r => r.items[id]); const ok = att.filter(r => r.items[id].ok); const tr = ok.map(r => r.items[id].tries || 1); return { id, it: ITEMS[id], att: att.length, ok: ok.length, avg: tr.length ? (tr.reduce((a, b) => a + b, 0) / tr.length) : 0, fail: att.length - ok.length }; });
+    stat.sort((a, b) => b.fail - a.fail || b.avg - a.avg);
+    v.innerHTML = `<p class="muted">Sorted by the number of students who attempted but have not passed yet – the items to discuss in class.</p><div class="wrap"><table><thead><tr><th>Lesson</th><th>Item</th><th>Attempted</th><th>Passed</th><th>Stuck</th><th>Avg checks to pass</th></tr></thead><tbody>${stat.map(s => `<tr><td>${esc(s.it.L.title)}</td><td>${s.it.kind === "task" ? "Task " + s.it.n + ": " + esc(s.it.title) : esc(s.it.title)}</td><td class="num">${s.att}</td><td class="num">${s.ok} (${Math.round(100 * s.ok / n)}%)</td><td class="num">${s.fail}</td><td class="num">${s.avg ? s.avg.toFixed(1) : "–"}</td></tr>`).join("")}</tbody></table></div>`;
+  } else {
+    const n = rows.length || 1;
+    v.innerHTML = `<div class="wrap"><table><thead><tr><th>Part</th><th>Lesson</th><th>Items</th><th>Students finished</th><th>Average completion</th></tr></thead><tbody>${C.map(L => { const ids = [...L.tasks.map(t => t.id), ...L.mcq.map(q => q.id)]; if (!ids.length) return ""; const per = rows.map(r => ids.filter(id => r.items[id] && r.items[id].ok).length / ids.length); const fin = per.filter(x => x === 1).length; const av = per.length ? Math.round(100 * per.reduce((a, b) => a + b, 0) / per.length) : 0; return `<tr><td>${esc(L.part)}</td><td>${esc(L.title)}</td><td class="num">${ids.length}</td><td class="num">${fin} / ${rows.length}</td><td><span class="bar"><i style="width:${av}%"></i></span>${av}%</td></tr>`; }).join("")}</tbody></table></div>`;
+  }
+}
+async function detail(r){
+  const dlg = $("#dlg");
+  dlg.innerHTML = `<div class="dh"><h2>${esc(r.name)} · ${esc(r.enrollment)}</h2><button class="btn ghost" id="cl">Close</button></div><div class="db"><p class="muted">Loading submitted code…</p></div>`;
+  dlg.showModal(); $("#cl").onclick = () => dlg.close();
+  let code = {};
+  try { const s = await D.getDocs(D.query(D.collection(db, P + "attempts"), D.where("uid", "==", r.uid))); s.forEach(d => { const x = d.data(); code[x.item] = x; }); }
+  catch (e) { toast("Could not load code: " + (e.code || e.message)); }
+  let h = `<p>${esc(r.email)}${r.division ? " · " + esc(r.division) : ""} · ${r.tasks}/${TASKS.length} tasks · ${r.mcq}/${MCQS.length} quick checks · ${r.pct}% overall</p>`;
+  for (const L of C) {
+    const ids = [...L.tasks.map(t => t.id), ...L.mcq.map(q => q.id)]; if (!ids.length) continue;
+    h += `<div class="les">${esc(L.title)} – ${ids.filter(id => r.items[id] && r.items[id].ok).length}/${ids.length}</div>`;
+    for (const id of ids) {
+      const it = ITEMS[id], p = r.items[id], c = code[id];
+      const st = p ? (p.ok ? `<span class="ok">✓ passed</span>` : `<span class="tr">attempted</span>`) : `<span class="no">not started</span>`;
+      h += `<div class="it"><span>${it.kind === "task" ? "Task " + it.n : "Q" + it.n}</span><span>${esc(it.title)}</span>${st}<span class="muted">${p ? p.tries + " check" + (p.tries > 1 ? "s" : "") : ""}</span>${c && c.code ? `<pre class="code">${esc(c.code)}</pre>` : ""}</div>`;
+    }
+  }
+  dlg.querySelector(".db").innerHTML = h;
+}
+function exportCsv(){
+  const rows = filtered();
+  const head = ["Name", "Enrollment", "Division", "Email", "Tasks passed", "Quick checks correct", "Overall %", ...PARTS.map(p => p + " %"), "Total checks", "Last active", ...IDS.map(id => { const it = ITEMS[id]; return it.L.id + ":" + (it.kind === "task" ? "T" : "Q") + it.n; })];
+  const lines = [head, ...rows.map(r => [r.name, r.enrollment, r.division, r.email, r.tasks, r.mcq, r.pct, ...PARTS.map(p => r["p_" + p]), r.tries, r.last ? new Date(r.last).toISOString() : "", ...IDS.map(id => r.items[id] ? (r.items[id].ok ? 1 : 0) : "")])];
+  const csv = lines.map(l => l.map(x => { const s = String(x ?? ""); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(",")).join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));
+  a.download = "scientific-python-progress-" + new Date().toISOString().slice(0, 10) + ".csv"; a.click();
+}
+</script>
+</body>
+</html>

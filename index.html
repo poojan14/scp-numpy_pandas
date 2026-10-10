@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scientific Python Lab</title>
+<meta name="description" content="Interactive NumPy and Pandas lessons with in-browser Python, auto-checked tasks and progress tracking.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231F4E8C'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='15' font-weight='700' fill='white' text-anchor='middle'%3Enp%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF; --surface:#F5F7FA; --surface-2:#EBF1F8; --line:#DCE3EB;
+  --ink:#1A2433; --ink-2:#4A5568; --muted:#6B778A;
+  --blue:#1F4E8C; --blue-ink:#173D6E; --blue-soft:#E7EFF9;
+  --green:#2E7D5B; --green-soft:#E6F3EC; --red:#B4472F; --red-soft:#FBEAE5;
+  --amber:#8A5A00; --amber-soft:#FFF4D6;
+  --code-bg:#F7F9FC; --c-kw:#7A3EA0; --c-str:#9A4A12; --c-com:#2E7D5B; --c-num:#1F4E8C; --c-bi:#0B6E79;
+  --serif:"Source Serif 4", Cambria, Georgia, serif;
+  --sans:"Source Sans 3", Calibri, "Segoe UI", Arial, sans-serif;
+  --mono:"Source Code Pro", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#151A21; --surface:#1C232C; --surface-2:#22303F; --line:#2F3B49;
+    --ink:#E6EBF1; --ink-2:#B8C2CF; --muted:#8C99A9;
+    --blue:#7FAEE8; --blue-ink:#A8C8F0; --blue-soft:#1F3049;
+    --green:#6CC59B; --green-soft:#1C3328; --red:#EC8A72; --red-soft:#3A2420;
+    --amber:#E8B95A; --amber-soft:#3A3018;
+    --code-bg:#181E26; --c-kw:#C79BEA; --c-str:#E4A06A; --c-com:#7CCB9F; --c-num:#8FB8F0; --c-bi:#6FD0D8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151A21; --surface:#1C232C; --surface-2:#22303F; --line:#2F3B49;
+  --ink:#E6EBF1; --ink-2:#B8C2CF; --muted:#8C99A9;
+  --blue:#7FAEE8; --blue-ink:#A8C8F0; --blue-soft:#1F3049;
+  --green:#6CC59B; --green-soft:#1C3328; --red:#EC8A72; --red-soft:#3A2420;
+  --amber:#E8B95A; --amber-soft:#3A3018;
+  --code-bg:#181E26; --c-kw:#C79BEA; --c-str:#E4A06A; --c-com:#7CCB9F; --c-num:#8FB8F0; --c-bi:#6FD0D8;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.6; -webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--blue); outline-offset:2px}
+[hidden]{display:none !important}
+a{color:var(--blue)}
+code{font-family:var(--mono); font-size:.88em; background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:0 4px; overflow-wrap:anywhere}
+pre{font-family:var(--mono); font-size:14px; line-height:1.5}
+
+/* top bar */
+.top{position:sticky; top:0; z-index:30; background:var(--bg); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; padding:10px 16px; padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.top .menu{display:none; border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:4px 10px; cursor:pointer}
+.top .ttl{font-family:var(--serif); font-weight:700; font-size:18px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration:none; color:var(--ink)}
+.top .ttl span{color:var(--muted); font-family:var(--sans); font-weight:400; font-size:15px; margin-left:8px}
+.pill{font-size:13px; border:1px solid var(--line); border-radius:999px; padding:3px 10px; white-space:nowrap; background:var(--surface); color:var(--ink-2); cursor:default}
+.pill i{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--muted); margin-right:6px; vertical-align:1px}
+.pill.ready i{background:var(--green)} .pill.loading i{background:var(--amber); animation:blink 1s infinite} .pill.error{cursor:pointer} .pill.error i{background:var(--red)}
+@keyframes blink{50%{opacity:.3}}
+.iconbtn{border:1px solid var(--line); background:var(--bg); border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:17px; line-height:1; flex:none}
+.userbtn{border:1px solid var(--line); background:var(--bg); border-radius:999px; padding:4px 12px 4px 4px; cursor:pointer; display:flex; align-items:center; gap:8px; max-width:220px; font-size:15px}
+.userbtn .av{width:28px; height:28px; border-radius:50%; background:var(--blue); color:#fff; display:grid; place-items:center; font-weight:700; font-size:14px; flex:none}
+:root[data-theme="dark"] .userbtn .av{color:#10161D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .userbtn .av{color:#10161D}}
+.userbtn span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.prog{height:3px; background:var(--line); position:sticky; top:calc(57px + env(safe-area-inset-top,0px)); z-index:29}
+.prog i{display:block; height:100%; background:var(--green); width:0; transition:width .4s}
+
+/* layout */
+.layout{display:grid; grid-template-columns:290px minmax(0,1fr); max-width:1380px; margin:0 auto}
+.toc{position:sticky; top:60px; height:calc(100vh - 60px); overflow:auto; padding:18px 12px 40px 18px; border-right:1px solid var(--line)}
+.toc h4{font-size:13px; color:var(--muted); font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin:18px 0 4px 8px}
+.toc h4:first-child{margin-top:0}
+.toc ol{list-style:none; margin:0; padding:0}
+.toc a{display:grid; grid-template-columns:16px 1fr auto; gap:6px; align-items:baseline; padding:5px 8px; border-radius:6px; text-decoration:none; color:var(--ink-2); font-size:15px; line-height:1.3}
+.toc a:hover{background:var(--surface)}
+.toc a[aria-current="page"]{background:var(--blue-soft); color:var(--blue-ink); font-weight:600}
+.toc .tick{color:var(--green); font-size:13px}
+.toc .cnt{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums}
+.scrim{display:none}
+main{padding:30px clamp(16px,4vw,56px) 60px; min-width:0}
+.sec{max-width:900px}
+.kicker{color:var(--blue); font-weight:600; font-size:15px; margin:0 0 4px}
+h1{font-family:var(--serif); font-size:clamp(30px,4vw,42px); line-height:1.15; margin:0 0 12px}
+h2{font-family:var(--serif); font-size:clamp(26px,3.2vw,34px); line-height:1.2; margin:0 0 10px}
+h3{font-family:var(--serif); font-size:22px; margin:34px 0 10px; padding-top:6px; border-top:1px solid var(--line)}
+p{margin:0 0 12px}
+.lead{font-size:19px; color:var(--ink-2); max-width:66ch}
+.prose{max-width:72ch}
+.prose ul,.prose ol{padding-left:22px; margin:0 0 12px}
+.prose li{margin-bottom:5px}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+pre.diagram{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:10px 14px; overflow-x:auto}
+.cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:12px 0}
+.box{border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:var(--bg)}
+.box h4{margin:0 0 4px; font-size:16px}
+.box p{margin:0; color:var(--ink-2); font-size:15px}
+.box pre{margin:0; white-space:pre-wrap}
+.callout{border-left:4px solid var(--blue); background:var(--blue-soft); padding:10px 14px; border-radius:0 8px 8px 0; margin:14px 0; max-width:74ch}
+table.t{border-collapse:collapse; margin:10px 0 14px; font-size:15.5px; width:100%; max-width:760px}
+table.t th,table.t td{border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top}
+table.t th{background:var(--surface)}
+.tablewrap{overflow-x:auto}
+
+.btn{border:1px solid var(--blue); background:var(--blue); color:#fff; border-radius:8px; padding:7px 14px; cursor:pointer; font-weight:600; font-size:15px; white-space:nowrap}
+:root[data-theme="dark"] .btn{color:#10161D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#10161D}}
+.btn.ghost{background:transparent; color:var(--blue) !important; border-color:var(--line)}
+.btn.ok{background:var(--green); border-color:var(--green)}
+.btn:disabled{opacity:.45; cursor:default}
+.btn.lg{padding:10px 20px; font-size:17px}
+.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+
+/* syntax table */
+.syn{width:100%; border-collapse:collapse; font-size:15px}
+.syn td{border-bottom:1px solid var(--line); padding:6px 8px; vertical-align:top}
+.syn td:first-child{font-family:var(--mono); font-size:13.5px; white-space:pre-wrap; overflow-wrap:anywhere; width:52%; color:var(--blue-ink)}
+
+/* editor */
+.ed{position:relative; font-family:var(--mono); font-size:14px; line-height:1.55; background:var(--code-bg); border:1px solid var(--line); border-radius:8px; tab-size:4}
+.ed:focus-within{border-color:var(--blue); box-shadow:0 0 0 2px var(--blue-soft)}
+.ed pre,.ed textarea{margin:0; padding:12px 14px; border:0; font:inherit; letter-spacing:0; white-space:pre-wrap; overflow-wrap:anywhere; word-break:normal; tab-size:4}
+.ed pre{min-height:3.4em; pointer-events:none; color:var(--ink)}
+.ed pre code{background:none; border:0; padding:0; font:inherit; border-radius:0}
+.ed textarea{position:absolute; inset:0; width:100%; height:100%; resize:none; background:transparent; color:transparent; caret-color:var(--ink); overflow:hidden; outline:none}
+.ed textarea::selection{background:rgba(31,78,140,.25); color:transparent}
+.ed.ro textarea{display:none}
+.tk-kw{color:var(--c-kw); font-weight:600} .tk-str{color:var(--c-str)} .tk-com{color:var(--c-com); font-style:italic} .tk-num{color:var(--c-num)} .tk-bi{color:var(--c-bi)}
+.codeblock{background:var(--code-bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:8px 0; white-space:pre-wrap; overflow-wrap:anywhere}
+
+/* cards */
+.card{border:1px solid var(--line); border-radius:12px; padding:16px; margin:16px 0; background:var(--surface)}
+.card-h{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+.card-h b{font-size:17px}
+.badge{font-size:12.5px; font-weight:700; background:var(--blue); color:#fff; border-radius:4px; padding:1px 8px; letter-spacing:.02em}
+:root[data-theme="dark"] .badge{color:#10161D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge{color:#10161D}}
+.status{margin-left:auto; font-size:13.5px; border-radius:999px; padding:1px 10px; border:1px solid var(--line); background:var(--bg); color:var(--muted)}
+.status.done{color:var(--green); border-color:var(--green); background:var(--green-soft); font-weight:600}
+.status.tried{color:var(--amber); border-color:var(--amber); background:var(--amber-soft)}
+.task-q{margin:0 0 10px}
+.actions{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 0}
+.kbd{font-size:12.5px; color:var(--muted); margin-left:auto; align-self:center}
+.out{margin-top:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); overflow:hidden}
+.out-h{font-size:12.5px; font-weight:700; color:var(--muted); padding:4px 12px; border-bottom:1px solid var(--line); background:var(--surface); display:flex; gap:8px}
+.out pre{margin:0; padding:10px 12px; white-space:pre; overflow-x:auto; max-height:420px}
+.out pre.err{color:var(--red); white-space:pre-wrap}
+.verdict{margin-top:10px; border-radius:8px; padding:8px 12px; font-size:15.5px; white-space:pre-wrap; font-family:var(--sans)}
+.verdict.ok{background:var(--green-soft); color:var(--green); border:1px solid var(--green); font-weight:600}
+.verdict.no{background:var(--red-soft); color:var(--ink); border:1px solid var(--red)}
+.verdict.info{background:var(--blue-soft); color:var(--ink); border:1px solid var(--line)}
+.verdict pre{font-size:13px; margin:6px 0 0; white-space:pre; overflow-x:auto}
+details.exp{margin-top:10px}
+details.exp summary{cursor:pointer; font-size:15px; color:var(--blue); font-weight:600}
+details.exp pre{background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin:6px 0 0; overflow-x:auto}
+.hintbox{margin-top:10px; background:var(--amber-soft); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:15.5px}
+.solbox{margin-top:10px}
+.solbox .lbl{font-size:13px; font-weight:700; color:var(--muted)}
+
+/* mcq */
+.mcq .opts{display:grid; gap:8px; margin-top:8px}
+.opt{display:flex; gap:10px; align-items:flex-start; text-align:left; border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:8px 12px; cursor:pointer; font-size:15.5px}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt .l{font-weight:700; color:var(--muted); flex:none}
+.opt .tx{white-space:pre-wrap; font-family:inherit}
+.opt.code .tx{font-family:var(--mono); font-size:14px}
+.opt.right{border-color:var(--green); background:var(--green-soft)}
+.opt.wrong{border-color:var(--red); background:var(--red-soft)}
+.opt:disabled{cursor:default}
+.why{margin-top:8px; font-size:15.5px}
+
+/* home */
+.hero{padding:6px 0 10px}
+.auth{border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--surface); margin:18px 0; max-width:720px}
+.auth h4{margin:0 0 6px; font-size:18px}
+.field{display:grid; gap:4px; margin:0 0 10px}
+.field label{font-size:14px; font-weight:600; color:var(--ink-2)}
+.field input{border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--bg); max-width:380px}
+.steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:14px 0 6px}
+.steps div{border:1px solid var(--line); border-radius:10px; padding:12px 14px}
+.steps .st{display:block; font-family:var(--serif); font-size:19px; font-weight:700; color:var(--blue)}
+.plan{list-style:none; padding:0; margin:0; border-top:1px solid var(--line)}
+.plan li{border-bottom:1px solid var(--line)}
+.plan a{display:grid; grid-template-columns:40px 1fr auto; gap:2px 12px; padding:10px 4px; text-decoration:none; color:var(--ink); align-items:center}
+.plan a:hover{background:var(--surface)}
+.plan .n{font-family:var(--serif); font-weight:700; font-size:20px; color:var(--blue); grid-row:span 2}
+.plan .meta{color:var(--ink-2); font-size:14.5px}
+.plan .pc{grid-row:span 2; font-size:14px; color:var(--muted); font-variant-numeric:tabular-nums; text-align:right; min-width:64px}
+.bar{height:8px; background:var(--line); border-radius:999px; overflow:hidden; margin-top:4px}
+.bar i{display:block; height:100%; background:var(--green); width:0}
+.stat{display:flex; gap:26px; flex-wrap:wrap; margin:14px 0}
+.stat b{display:block; font-family:var(--serif); font-size:34px; color:var(--blue); line-height:1.1}
+.stat span{font-size:14.5px; color:var(--ink-2)}
+.banner{border:1px solid var(--line); background:var(--amber-soft); border-radius:10px; padding:8px 14px; margin:0 0 18px; font-size:15.5px; display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.nav2{display:flex; justify-content:space-between; gap:12px; margin-top:34px; padding-top:16px; border-top:1px solid var(--line)}
+.nav2 a{text-decoration:none; font-weight:600}
+.ptable{width:100%; border-collapse:collapse; font-size:15px}
+.ptable td,.ptable th{border-bottom:1px solid var(--line); padding:6px 8px; text-align:left}
+.ptable th{color:var(--muted); font-size:13px}
+.grid-items{display:flex; flex-wrap:wrap; gap:4px}
+.grid-items a{width:28px; height:22px; border-radius:4px; background:var(--line); display:inline-block; font-size:10px; text-align:center; line-height:22px; color:var(--ink-2); text-decoration:none}
+.grid-items a.ok{background:var(--green); color:#fff}
+.grid-items a.tr{background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber)}
+footer{color:var(--muted); font-size:14px; margin-top:40px}
+
+dialog{border:1px solid var(--line); border-radius:12px; padding:20px; background:var(--bg); color:var(--ink); max-width:min(480px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+.menu-pop{position:absolute; right:12px; top:56px; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px; box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:40; min-width:220px; font-size:15px}
+.menu-pop button{display:block; width:100%; text-align:left; background:none; border:0; padding:6px 8px; border-radius:6px; cursor:pointer}
+.menu-pop button:hover{background:var(--surface)}
+.toast{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:8px 16px; border-radius:8px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:60; max-width:90vw}
+.toast.show{opacity:1}
+
+@media (max-width: 900px){
+  .layout{grid-template-columns:1fr}
+  .top .menu{display:block}
+  .toc{position:fixed; left:0; top:0; bottom:0; height:auto; width:290px; max-width:85vw; background:var(--bg); z-index:50; transform:translateX(-100%); transition:transform .2s; padding-top:20px}
+  body.nav-open .toc{transform:none}
+  body.nav-open .scrim{display:block; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:45}
+  .top .ttl span{display:none}
+  .kbd{display:none}
+}
+@media (max-width: 560px){
+  .pill .lbl{display:none}
+  .userbtn span{display:none}
+  .userbtn{padding:4px}
+  main{padding:20px 16px 50px}
+  .card{padding:12px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="menu" id="menuBtn" aria-label="Open lessons menu">☰</button>
+  <a class="ttl" href="#home">Scientific Python Lab<span>NumPy &amp; Pandas · slides 1–48 and practice</span></a>
+  <span class="pill" id="pyPill" title="In-browser Python status"><i></i><span class="lbl">Python: </span><span id="pyTxt">not started</span></span>
+  <span id="userSlot"></span>
+  <button class="iconbtn" id="themeBtn" aria-label="Toggle dark mode">◐</button>
+</header>
+<div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+<div class="layout">
+  <nav class="toc" id="toc" aria-label="Lessons"></nav>
+  <div class="scrim" id="scrim"></div>
+  <main id="main"></main>
+</div>
+<div class="menu-pop" id="userMenu" hidden></div>
+<dialog id="dlg"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="content.js"></script>
+<script>
+"use strict";
+const C = window.COURSE;
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LS = {
+  get(k, d=null){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); };
+
+/* ---------- course index ---------- */
+const ITEMS = {};
+C.forEach((L, li) => {
+  L.num = li + 1;
+  L.tasks.forEach((t, i) => ITEMS[t.id] = { kind: "task", lesson: L.id, n: i + 1, obj: t });
+  L.mcq.forEach((q, i) => ITEMS[q.id] = { kind: "mcq", lesson: L.id, n: i + 1, obj: q });
+});
+const LESSON = Object.fromEntries(C.map(L => [L.id, L]));
+const PARTS = [...new Set(C.map(L => L.part))];
+const ALL_IDS = Object.keys(ITEMS);
+const TASK_IDS = ALL_IDS.filter(id => ITEMS[id].kind === "task");
+const MCQ_IDS = ALL_IDS.filter(id => ITEMS[id].kind === "mcq");
+window.__ITEMS = ITEMS;
+const lessonIds = L => [...L.tasks.map(t => t.id), ...L.mcq.map(q => q.id)];
+
+/* ---------- state ---------- */
+let USER = null, PROFILE = null, CLOUD = false;
+let PROG = LS.get("sp-prog-guest", {});
+const progKey = () => USER && PROFILE ? "sp-prog-" + USER.uid : "sp-prog-guest";
+const saveLocal = () => LS.set(progKey(), PROG);
+const isOk = id => !!(PROG[id] && PROG[id].ok);
+const tries = id => (PROG[id] && PROG[id].tries) || 0;
+const doneIn = ids => ids.filter(isOk).length;
+
+async function record(id, ok, code){
+  const p = PROG[id] || { ok: false, tries: 0 };
+  if (p.ok) return;
+  p.tries = (p.tries || 0) + 1;
+  if (ok) p.ok = true;
+  p.at = Date.now();
+  PROG[id] = p; saveLocal(); refreshProgressUI();
+  if (CLOUD && window.FB) {
+    try { await window.FB.saveAttempt(USER.uid, PROFILE, id, ITEMS[id], p, code); }
+    catch (e) { console.error(e); toast("Could not save to the server (" + (e.code || e.message) + "). Your progress is kept in this browser."); }
+  }
+}
+
+/* ---------- Python highlighter ---------- */
+const KW = new Set("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield".split(" "));
+const BI = new Set("print len range sum min max round abs sorted list dict set tuple int float str bool type enumerate zip open isinstance input map filter reversed any all".split(" "));
+function hl(src){
+  const re = /(#[^\n]*)|((?:\b[rRbBfFuU]{1,2})?(?:"""[\s\S]*?(?:"""|$)|'''[\s\S]*?(?:'''|$)|"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?))|(\b\d[\d_]*(?:\.\d*)?(?:[eE][+-]?\d+)?\b)|([A-Za-z_]\w*)/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index)); last = re.lastIndex;
+    const s = esc(m[0]);
+    if (m[1]) out += `<span class="tk-com">${s}</span>`;
+    else if (m[2]) out += `<span class="tk-str">${s}</span>`;
+    else if (m[3]) out += `<span class="tk-num">${s}</span>`;
+    else if (KW.has(m[4])) out += `<span class="tk-kw">${s}</span>`;
+    else if (BI.has(m[4])) out += `<span class="tk-bi">${s}</span>`;
+    else out += s;
+  }
+  return out + esc(src.slice(last));
+}
+
+/* ---------- editor ---------- */
+function makeEditor(host, code, opts={}){
+  host.classList.add("ed");
+  host.innerHTML = `<pre aria-hidden="true"><code></code></pre><textarea spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="${esc(opts.label || "Python code editor")}"></textarea>`;
+  const ta = $("textarea", host), pre = $("code", host);
+  ta.value = code;
+  let escMode = false;
+  const paint = () => { pre.innerHTML = hl(ta.value) + "\n"; };
+  const insert = txt => { ta.focus(); if (!document.execCommand || !document.execCommand("insertText", false, txt)) { ta.setRangeText(txt, ta.selectionStart, ta.selectionEnd, "end"); paint(); } };
+  ta.addEventListener("input", () => { paint(); if (opts.onChange) opts.onChange(ta.value); });
+  ta.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); (e.shiftKey && opts.onCheck ? opts.onCheck : opts.onRun)?.(); return; }
+    if (e.key === "Escape") { escMode = true; return; }
+    if (e.key === "Tab" && !escMode) {
+      e.preventDefault();
+      const s = ta.selectionStart, v = ta.value, ls = v.lastIndexOf("\n", s - 1) + 1;
+      if (e.shiftKey) { const ind = v.slice(ls).match(/^ {1,4}/); if (ind) { ta.setSelectionRange(ls, ls + ind[0].length); insert(""); } }
+      else insert("    ");
+      return;
+    }
+    escMode = false;
+    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const s = ta.selectionStart, v = ta.value, ls = v.lastIndexOf("\n", s - 1) + 1, line = v.slice(ls, s);
+      let ind = line.match(/^\s*/)[0];
+      if (/:\s*(#.*)?$/.test(line)) ind += "    ";
+      if (ind) { e.preventDefault(); insert("\n" + ind); }
+    }
+  });
+  paint();
+  return { get: () => ta.value, set: v => { ta.value = v; paint(); if (opts.onChange) opts.onChange(v); }, focus: () => ta.focus() };
+}
+function codeBlock(code){ return `<pre class="codeblock">${hl(code)}</pre>`; }
+
+/* ---------- Python runner (Pyodide in a Web Worker) ---------- */
+const PYODIDE_URL = (window.PYODIDE_URL || "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/");
+const WORKER_SRC = `
+let py = null, xl = false;
+self.onmessage = async (e) => {
+  const m = e.data;
+  if (m.type === "init") {
+    try {
+      importScripts(m.url + "pyodide.js");
+      py = await loadPyodide({ indexURL: m.url });
+      await py.loadPackage(["numpy", "pandas"]);
+      py.runPython(m.harness);
+      self.postMessage({ type: "ready" });
+    } catch (err) { self.postMessage({ type: "fail", error: String((err && err.message) || err) }); }
+    return;
+  }
+  if (m.type === "run") {
+    try {
+      if (!xl && /excel|openpyxl/i.test(m.payload)) {
+        try { await py.loadPackage("openpyxl"); }
+        catch (e1) { await py.loadPackage("micropip"); await py.runPythonAsync("import micropip\\nawait micropip.install('openpyxl')"); }
+        xl = true;
+      }
+      py.globals.set("__payload", m.payload);
+      const r = py.runPython(m.mode === "grade" ? "grade(__payload)" : "run_code(__payload)");
+      self.postMessage({ type: "result", id: m.id, result: r });
+    } catch (err) {
+      self.postMessage({ type: "result", id: m.id, result: JSON.stringify({ out: "", err: String((err && err.message) || err), ok: false, msg: "" }) });
+    }
+  }
+};`;
+const Py = {
+  w: null, readyP: null, seq: 0, cbs: {}, chain: Promise.resolve(),
+  status(s, detail){
+    const p = $("#pyPill"); p.className = "pill " + s;
+    $("#pyTxt").textContent = { off: "not started", loading: "loading…", ready: "ready", busy: "running…", error: "failed – tap to retry" }[s] || s;
+    p.title = detail || "In-browser Python (Pyodide) with NumPy and Pandas";
+  },
+  boot(){
+    if (this.readyP) return this.readyP;
+    this.status("loading", "Downloading Python, NumPy and Pandas (first time can take 20–40 seconds)");
+    this.readyP = new Promise((res, rej) => {
+      let w;
+      try { w = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: "text/javascript" }))); }
+      catch (e) { this.status("error", String(e)); this.readyP = null; rej(e); return; }
+      this.w = w;
+      w.onmessage = e => {
+        const m = e.data;
+        if (m.type === "ready") { this.status("ready"); res(); }
+        else if (m.type === "fail") { this.status("error", m.error); this.readyP = null; rej(new Error(m.error)); }
+        else if (m.type === "result") { const cb = this.cbs[m.id]; delete this.cbs[m.id]; if (cb) cb(JSON.parse(m.result)); }
+      };
+      w.onerror = e => { this.status("error", e.message); this.readyP = null; rej(new Error(e.message || "Worker error")); };
+      w.postMessage({ type: "init", url: PYODIDE_URL, harness: window.PY_HARNESS });
+    });
+    return this.readyP;
+  },
+  run(mode, payload){
+    const job = async () => {
+      await this.boot();
+      this.status("busy");
+      return new Promise(res => {
+        const id = ++this.seq, limit = /excel/i.test(payload) ? 90000 : 30000;
+        const timer = setTimeout(() => {
+          delete this.cbs[id]; try { this.w.terminate(); } catch (e) {}
+          this.readyP = null; this.status("off");
+          res({ out: "", err: "Stopped: the code ran for more than " + limit / 1000 + " seconds (is there an infinite loop?). Python is restarting.", ok: false, msg: "" });
+          this.boot().catch(() => {});
+        }, limit);
+        this.cbs[id] = r => { clearTimeout(timer); this.status("ready"); res(r); };
+        this.w.postMessage({ type: "run", id, mode, payload });
+      });
+    };
+    const p = this.chain.then(job, job);
+    this.chain = p.catch(() => {});
+    return p;
+  }
+};
+$("#pyPill").addEventListener("click", () => { if ($("#pyPill").classList.contains("error")) Py.boot().catch(() => {}); });
+
+/* ---------- output helpers ---------- */
+const norm = s => String(s || "").trim().split("\n").map(l => l.replace(/\s+$/, "")).join("\n");
+function showOut(box, r){
+  let h = "";
+  if (r.out) h += `<div class="out"><div class="out-h">Output</div><pre>${esc(r.out)}</pre></div>`;
+  if (r.err) h += `<div class="out"><div class="out-h">Error</div><pre class="err">${esc(r.err)}</pre></div>`;
+  if (!r.out && !r.err) h += `<div class="out"><div class="out-h">Output</div><pre class="muted">(nothing was printed – use print() to see values)</pre></div>`;
+  box.innerHTML = h;
+}
+function pyFailMsg(box, e){ box.innerHTML = `<div class="verdict no">Python could not start: ${esc(e.message || e)}. Check your internet connection and tap the Python status button to retry.</div>`; }
+
+/* ---------- rendering: navigation ---------- */
+function renderToc(){
+  let h = `<ol><li><a href="#home" data-id="home"><span class="tick"></span><span>Home</span><span></span></a></li><li><a href="#progress" data-id="progress"><span class="tick"></span><span>My progress</span><span></span></a></li></ol>`;
+  for (const part of PARTS) {
+    h += `<h4>${esc(part)}</h4><ol>`;
+    for (const L of C.filter(l => l.part === part)) {
+      h += `<li><a href="#${L.id}" data-id="${L.id}"><span class="tick" data-tick="${L.id}"></span><span>${esc(L.title)}</span><span class="cnt" data-cnt="${L.id}"></span></a></li>`;
+    }
+    h += `</ol>`;
+  }
+  h += `<h4>Teacher</h4><ol><li><a href="dashboard.html"><span class="tick"></span><span>Class dashboard</span><span></span></a></li></ol>`;
+  $("#toc").innerHTML = h;
+}
+function refreshProgressUI(){
+  for (const L of C) {
+    const ids = lessonIds(L), d = doneIn(ids);
+    const c = $(`[data-cnt="${L.id}"]`); if (c) c.textContent = ids.length ? `${d}/${ids.length}` : "";
+    const t = $(`[data-tick="${L.id}"]`); if (t) t.textContent = ids.length && d === ids.length ? "✓" : "";
+  }
+  $("#progBar").style.width = (100 * doneIn(ALL_IDS) / ALL_IDS.length).toFixed(1) + "%";
+  if (CURRENT === "home" || CURRENT === "progress") show(CURRENT, { noScroll: true });
+}
+
+/* ---------- rendering: user / auth ---------- */
+function renderUser(){
+  const slot = $("#userSlot");
+  if (!window.FB) { slot.innerHTML = ""; return; }
+  if (!USER) { slot.innerHTML = `<button class="btn ghost" id="signInTop">Sign in</button>`; $("#signInTop").onclick = signIn; return; }
+  const nm = PROFILE ? PROFILE.name : (USER.displayName || USER.email);
+  slot.innerHTML = `<button class="userbtn" id="userBtn" aria-haspopup="true"><span class="av">${esc((nm || "?").trim()[0].toUpperCase())}</span><span>${esc(nm)}</span></button>`;
+  $("#userBtn").onclick = e => {
+    e.stopPropagation();
+    const m = $("#userMenu");
+    m.innerHTML = `<div class="small" style="padding:4px 8px 8px"><b>${esc(nm)}</b><br><span class="muted">${esc(PROFILE ? PROFILE.enrollment + " · " : "")}${esc(USER.email)}</span></div>
+      ${PROFILE ? "" : `<button id="mReg">Complete registration</button>`}<button id="mProg">My progress</button><button id="mOut">Sign out</button>`;
+    m.hidden = !m.hidden;
+    $("#mProg").onclick = () => { m.hidden = true; location.hash = "progress"; };
+    $("#mOut").onclick = async () => { m.hidden = true; await window.FB.signOut(); };
+    if ($("#mReg")) $("#mReg").onclick = () => { m.hidden = true; location.hash = "home"; };
+  };
+}
+document.addEventListener("click", e => { const m = $("#userMenu"); if (!m.hidden && !m.contains(e.target)) m.hidden = true; });
+
+async function signIn(){
+  if (!window.FB) { toast("Sign-in is not configured for this copy of the site."); return; }
+  try { await window.FB.signIn(); } catch (e) { toast("Sign-in failed: " + (e.code || e.message)); }
+}
+function authCard(){
+  if (!window.FB) {
+    return `<div class="auth"><h4>Practice mode</h4><p class="small muted">${window.FB_ERROR ? "The progress server could not be reached, so" : "Sign-in is not configured, so"} your progress is saved only in this browser.</p></div>`;
+  }
+  if (!USER) {
+    return `<div class="auth"><h4>Sign in to record your progress</h4>
+      <p class="small">Sign in with your Google account and register once with your enrollment number. Every task you pass is then saved for your teacher. You can also practise as a guest; guest progress stays in this browser and is uploaded when you sign in.</p>
+      <button class="btn lg" id="signInBig">Sign in with Google</button></div>`;
+  }
+  if (!PROFILE) {
+    return `<div class="auth"><h4>One-time registration</h4>
+      <p class="small">Signed in as <b>${esc(USER.email)}</b>. Enter your details exactly as in the university records. They cannot be changed later.</p>
+      <form id="regForm">
+        <div class="field"><label for="rName">Full name</label><input id="rName" required minlength="2" maxlength="70" value="${esc(USER.displayName || "")}"></div>
+        <div class="field"><label for="rEnr">Enrollment number</label><input id="rEnr" required pattern="[A-Za-z0-9_\\-]{3,30}" maxlength="30" placeholder="e.g. 230031101611001"></div>
+        <div class="field"><label for="rDiv">Class / division (optional)</label><input id="rDiv" maxlength="30" placeholder="e.g. BTech CSE Sem 3 – A"></div>
+        <div class="row"><button class="btn" type="submit">Register</button><button class="btn ghost" type="button" id="regOut">Use a different account</button></div>
+        <p class="small muted" id="regMsg" style="margin-top:8px"></p>
+      </form></div>`;
+  }
+  const d = doneIn(ALL_IDS);
+  return `<div class="auth"><h4>Welcome, ${esc(PROFILE.name)}</h4>
+    <p class="small">Enrollment <b>${esc(PROFILE.enrollment)}</b>${PROFILE.division ? " · " + esc(PROFILE.division) : ""} · ${esc(USER.email)}<br>Your progress is saved to the class record: <b>${d}</b> of ${ALL_IDS.length} items complete.</p>
+    <div class="row"><a class="btn" href="#${nextLessonId()}">Continue learning</a><a class="btn ghost" href="#progress">My progress</a></div></div>`;
+}
+function wireAuthCard(root){
+  const b = $("#signInBig", root); if (b) b.onclick = signIn;
+  const o = $("#regOut", root); if (o) o.onclick = () => window.FB.signOut();
+  const f = $("#regForm", root);
+  if (f) f.onsubmit = async e => {
+    e.preventDefault();
+    const name = $("#rName").value.trim().replace(/\s+/g, " ");
+    const enr = $("#rEnr").value.trim().toUpperCase();
+    const div = $("#rDiv").value.trim();
+    const msg = $("#regMsg");
+    if (!/^[A-Z0-9_-]{3,30}$/.test(enr)) { msg.textContent = "Enrollment number can contain only letters, digits, - and _."; return; }
+    msg.textContent = "Registering…";
+    try {
+      const taken = await window.FB.enrollmentTaken(enr);
+      if (taken) { msg.textContent = "This enrollment number is already registered with another Google account. Ask your teacher if this is a mistake."; return; }
+      await window.FB.register(USER.uid, USER.email, name, enr, div);
+      PROFILE = await window.FB.getProfile(USER.uid);
+      await afterLogin(true);
+      toast("Registered. Your progress will now be saved.");
+    } catch (err) {
+      console.error(err);
+      msg.textContent = err.code === "permission-denied" ? "Registration was refused. This enrollment number may already be in use." : "Registration failed: " + (err.code || err.message);
+    }
+  };
+}
+async function afterLogin(merge){
+  if (!USER || !PROFILE) { CLOUD = false; PROG = LS.get("sp-prog-guest", {}); renderUser(); refreshProgressUI(); show(CURRENT, { noScroll: true }); return; }
+  CLOUD = true;
+  let cloud = {};
+  try { cloud = await window.FB.getProgress(USER.uid) || {}; } catch (e) { console.error(e); toast("Could not load saved progress: " + (e.code || e.message)); }
+  const cached = LS.get("sp-prog-" + USER.uid, {});
+  PROG = Object.assign({}, cached, cloud);
+  if (merge !== false) {
+    const guest = LS.get("sp-prog-guest", {});
+    const up = {};
+    for (const [id, p] of Object.entries(guest)) if (ITEMS[id] && p.ok && !isOk(id)) { up[id] = p; PROG[id] = p; }
+    if (Object.keys(up).length) {
+      try { await window.FB.uploadMany(USER.uid, PROFILE, up, id => LS.get("sp-code-" + id, null)); toast(`Uploaded ${Object.keys(up).length} items you completed as a guest.`); LS.set("sp-prog-guest", {}); }
+      catch (e) { console.error(e); }
+    }
+  }
+  saveLocal(); renderUser(); refreshProgressUI(); show(CURRENT, { noScroll: true });
+}
+
+/* ---------- pages ---------- */
+function nextLessonId(){ for (const L of C) { const ids = lessonIds(L); if (ids.length && doneIn(ids) < ids.length) return L.id; } return C[0].id; }
+function pct(a, b){ return b ? Math.round(100 * a / b) : 0; }
+
+function pageHome(){
+  const d = doneIn(ALL_IDS);
+  let plan = "";
+  for (const part of PARTS) {
+    plan += `<h3>${esc(part)}</h3><ol class="plan">`;
+    for (const L of C.filter(l => l.part === part)) {
+      const ids = lessonIds(L), k = doneIn(ids);
+      plan += `<li><a href="#${L.id}"><span class="n">${L.num}</span><b>${esc(L.title)}</b><span class="pc">${k}/${ids.length}<span class="bar"><i style="width:${pct(k, ids.length)}%"></i></span></span><span class="meta">${/^\d/.test(L.slides) ? "Slides " + esc(L.slides) + " · " : ""}${L.tasks.length} coding tasks${L.mcq.length ? " · " + L.mcq.length + " quick checks" : ""}</span></a></li>`;
+    }
+    plan += `</ol>`;
+  }
+  return `<section class="sec hero">
+    <p class="kicker">Scientific Computing using Python</p>
+    <h1>NumPy and Pandas, hands on</h1>
+    <p class="lead">Theory, syntax and runnable examples for slides 1–48 of <i>Scientific Python Packages</i>, followed by extra Pandas manipulation and scenario practice. Every task is checked automatically by real Python running inside your browser.</p>
+    <p class="small muted">Poojan Shah · Assistant Professor, School of IT, AI &amp; Cyber Security · Rashtriya Raksha University</p>
+    ${authCard()}
+    <div class="stat"><div><b>${C.length}</b><span>lessons</span></div><div><b>${TASK_IDS.length}</b><span>auto-checked coding tasks</span></div><div><b>${MCQ_IDS.length}</b><span>quick-check questions</span></div><div><b>${pct(d, ALL_IDS.length)}%</b><span>your progress</span></div></div>
+    <h3>How each lesson works</h3>
+    <div class="steps">
+      <div><span class="st">1 · Read</span>Short theory and a syntax table taken from the slides.</div>
+      <div><span class="st">2 · Run</span>Run the slide's code, change it, and compare your output with the expected output.</div>
+      <div><span class="st">3 · Check</span>Answer the quick-check questions to test your understanding.</div>
+      <div><span class="st">4 · Practise</span>Write code for each task and press <b>Check</b>. The solution unlocks after 3 attempts.</div>
+    </div>
+    <p class="small muted">Tip: <code>Ctrl</code> + <code>Enter</code> runs the code, <code>Ctrl</code> + <code>Shift</code> + <code>Enter</code> checks it. <code>np</code> and <code>pd</code> are already imported, but it is good practice to write the imports yourself.</p>
+    ${plan}
+    <footer>Python runs in your browser using Pyodide; the first load downloads about 30 MB. Teachers: open the <a href="dashboard.html">class dashboard</a>.</footer>
+  </section>`;
+}
+
+function pageProgress(){
+  let rows = "";
+  for (const part of PARTS) {
+    rows += `<tr><th colspan="3" style="padding-top:16px">${esc(part)}</th></tr>`;
+    for (const L of C.filter(l => l.part === part)) {
+      const ids = lessonIds(L);
+      const cells = ids.map(id => { const it = ITEMS[id]; const cls = isOk(id) ? "ok" : tries(id) ? "tr" : ""; const lab = it.kind === "task" ? "T" + it.n : "Q" + it.n; return `<a class="${cls}" href="#${L.id}/${id}" title="${esc(it.kind === "task" ? it.obj.t : "Quick check " + it.n)}${tries(id) ? " · " + tries(id) + " attempt(s)" : ""}">${lab}</a>`; }).join("");
+      rows += `<tr><td style="width:34%"><a href="#${L.id}">${esc(L.title)}</a></td><td style="width:90px">${doneIn(ids)}/${ids.length}</td><td><div class="grid-items">${cells}</div></td></tr>`;
+    }
+  }
+  const dt = doneIn(TASK_IDS), dq = doneIn(MCQ_IDS);
+  return `<section class="sec"><p class="kicker">Progress</p><h2>My progress</h2>
+    ${USER && PROFILE ? `<p class="small">Saved to the class record for <b>${esc(PROFILE.name)}</b> (${esc(PROFILE.enrollment)}).</p>` : `<p class="small muted">Guest progress – saved only in this browser.${window.FB ? " Sign in to submit it." : ""}</p>`}
+    <div class="stat"><div><b>${dt}/${TASK_IDS.length}</b><span>coding tasks passed</span></div><div><b>${dq}/${MCQ_IDS.length}</b><span>quick checks correct</span></div><div><b>${pct(dt + dq, ALL_IDS.length)}%</b><span>overall</span></div></div>
+    <p class="small muted">Green = done · amber = attempted · grey = not started. Click a square to jump to it.</p>
+    <div class="tablewrap"><table class="ptable">${rows}</table></div></section>`;
+}
+
+function guestBanner(){
+  if (!window.FB) return "";
+  if (!USER) return `<div class="banner">You are practising as a guest – progress is kept in this browser only. <button class="btn ghost" data-signin>Sign in to save it</button></div>`;
+  if (!PROFILE) return `<div class="banner">Finish your one-time registration so your progress is saved. <a class="btn ghost" href="#home">Register</a></div>`;
+  return "";
+}
+
+function pageLesson(L){
+  const idx = C.indexOf(L), prev = C[idx - 1], next = C[idx + 1];
+  const ids = lessonIds(L);
+  let h = `<section class="sec">${guestBanner()}
+    <p class="kicker">${esc(L.part)}${/^\d/.test(L.slides) ? " · Slides " + esc(L.slides) : ""} · Lesson ${L.num}</p>
+    <h2>${esc(L.title)}</h2>
+    <p class="small muted" id="lessonCount">${ids.length ? `${doneIn(ids)} of ${ids.length} items complete` : ""}</p>
+    <div class="prose">${L.theory}</div>`;
+  if (L.syntax.length) {
+    h += `<h3>Syntax at a glance</h3><div class="tablewrap"><table class="syn">${L.syntax.map(([c, d]) => `<tr><td>${esc(c)}</td><td>${esc(d)}</td></tr>`).join("")}</table></div>`;
+  }
+  if (L.examples.length) {
+    h += `<h3>${L.examples.length > 1 ? "Run the examples" : (L.id === "final-quiz" ? "Playground" : "Run the example")}</h3>`;
+    if (L.id !== "final-quiz") h += `<p class="small muted">Press <b>Run</b> and compare your output with the expected output. Then change the code (values, sizes, functions) and run again to see what happens.</p>`;
+    L.examples.forEach((ex, i) => {
+      h += `<div class="card" data-ex="${i}"><div class="card-h"><span class="badge">EXAMPLE</span><b>${esc(ex.title)}</b></div>
+        <div class="edhost"></div>
+        <div class="actions"><button class="btn" data-act="run">▶ Run</button><button class="btn ghost" data-act="reset">Reset</button><span class="kbd">Ctrl + Enter to run</span></div>
+        <div class="res"></div>
+        ${ex.expected != null ? `<details class="exp"><summary>Expected output</summary><pre>${esc(ex.expected)}</pre></details>` : ""}</div>`;
+    });
+  }
+  if (L.mcq.length) {
+    h += `<h3>${L.id === "final-quiz" ? "Questions" : "Quick check"}</h3>`;
+    L.mcq.forEach((q, i) => { h += `<div class="card mcq" id="${q.id}" data-mcq="${q.id}"></div>`; });
+  }
+  if (L.tasks.length) {
+    h += `<h3>Practice tasks</h3><p class="small muted">Write your code in the box and press <b>Check</b>. Use the variable names given in the question – the checker looks for them. Your code is kept in this browser as you type.</p>`;
+    L.tasks.forEach((t, i) => { h += `<div class="card task" id="${t.id}" data-task="${t.id}"></div>`; });
+  }
+  h += `<div class="nav2">${prev ? `<a href="#${prev.id}">← ${esc(prev.title)}</a>` : "<span></span>"}${next ? `<a href="#${next.id}">${esc(next.title)} →</a>` : `<a href="#progress">My progress →</a>`}</div></section>`;
+  return h;
+}
+
+function wireLesson(L, root){
+  $$("[data-signin]", root).forEach(b => b.onclick = signIn);
+  L.examples.forEach((ex, i) => {
+    const card = $(`[data-ex="${i}"]`, root), res = $(".res", card);
+    const run = async () => {
+      const btn = $('[data-act="run"]', card); btn.disabled = true; res.innerHTML = `<div class="verdict info">Running…${Py.readyP ? "" : " (starting Python for the first time – this can take 20–40 seconds)"}</div>`;
+      try {
+        const r = await Py.run("run", ed.get());
+        showOut(res, r);
+        if (ex.expected != null && !r.err) {
+          const same = norm(r.out) === norm(ex.expected);
+          res.insertAdjacentHTML("beforeend", same ? `<div class="verdict ok">✓ Your output matches the expected output.</div>` : `<div class="verdict info">Your output differs from the expected output. That is expected if you changed the code or used random numbers without a seed.</div>`);
+        }
+      } catch (e) { pyFailMsg(res, e); }
+      btn.disabled = false;
+    };
+    const ed = makeEditor($(".edhost", card), ex.code, { onRun: run, label: "Example code" });
+    $('[data-act="run"]', card).onclick = run;
+    $('[data-act="reset"]', card).onclick = () => { ed.set(ex.code); res.innerHTML = ""; };
+  });
+  L.mcq.forEach((q, i) => renderMcq($(`[data-mcq="${q.id}"]`, root), q, i));
+  L.tasks.forEach((t, i) => renderTask($(`[data-task="${t.id}"]`, root), t, i));
+}
+
+function renderMcq(card, q, i){
+  const letters = "ABCDEFG";
+  const isCodeOpt = q.opts.some(o => /\n|^\[|^\(|^\d/.test(o));
+  const draw = (picked, wrongs) => {
+    const ok = isOk(q.id);
+    card.innerHTML = `<div class="card-h"><span class="badge">Q${i + 1}</span><b>Quick check</b><span class="status ${ok ? "done" : tries(q.id) ? "tried" : ""}">${ok ? "✓ Correct" : tries(q.id) ? tries(q.id) + " attempt(s)" : "Not answered"}</span></div>
+      <div>${q.q}</div>${q.code ? codeBlock(q.code) : ""}
+      <div class="opts">${q.opts.map((o, j) => {
+        const cls = ok && j === q.a ? "right" : wrongs.includes(j) ? "wrong" : "";
+        return `<button class="opt ${isCodeOpt ? "code" : ""} ${cls}" data-j="${j}" ${ok ? "disabled" : ""}><span class="l">${letters[j]}</span><span class="tx">${o.includes("<code>") ? o : esc(o)}</span></button>`;
+      }).join("")}</div>
+      ${ok ? `<div class="why"><b>Why:</b> ${q.why}</div>` : picked != null ? `<div class="why" style="color:var(--red)">Not quite – think again and pick another option.${wrongs.length >= 2 ? ` <br><span style="color:var(--ink)"><b>Hint:</b> ${q.why}</span>` : ""}</div>` : ""}`;
+    $$(".opt", card).forEach(b => b.onclick = async () => {
+      const j = +b.dataset.j;
+      if (j === q.a) { await record(q.id, true); draw(j, wrongs); }
+      else { wrongs.push(j); await record(q.id, false); draw(j, wrongs); }
+      updateLessonCount();
+    });
+  };
+  draw(null, []);
+}
+
+function renderTask(card, t, i){
+  const key = "sp-code-" + t.id;
+  const hintTxt = t.hint || (t.uses && t.uses.length ? "Use " + t.uses.map(u => "<code>" + esc(u) + "</code>").join(" and ") + " in your answer." : "");
+  card.innerHTML = `<div class="card-h"><span class="badge">TASK ${i + 1}</span><b>${esc(t.t)}</b><span class="status"></span></div>
+    <p class="task-q">${t.q}</p>
+    <div class="edhost"></div>
+    <div class="actions">
+      <button class="btn ghost" data-act="run">▶ Run</button>
+      <button class="btn ok" data-act="check">✓ Check</button>
+      ${hintTxt ? `<button class="btn ghost" data-act="hint">Hint</button>` : ""}
+      <button class="btn ghost" data-act="sol">Solution</button>
+      <button class="btn ghost" data-act="reset">Reset</button>
+      <span class="kbd">Ctrl + Enter run · Ctrl + Shift + Enter check</span>
+    </div>
+    <div class="res"></div><div class="extra"></div>`;
+  const res = $(".res", card), extra = $(".extra", card);
+  const st = () => {
+    const s = $(".status", card), ok = isOk(t.id), n = tries(t.id);
+    s.className = "status " + (ok ? "done" : n ? "tried" : "");
+    s.textContent = ok ? `✓ Passed${n > 1 ? " · " + n + " attempts" : ""}` : n ? `${n} attempt${n > 1 ? "s" : ""}` : "Not attempted";
+    const sb = $('[data-act="sol"]', card);
+    const unlocked = ok || n >= 3;
+    sb.disabled = !unlocked; sb.title = unlocked ? "Show the reference solution" : `Unlocks after 3 checks (${n}/3)`;
+  };
+  const payload = code => JSON.stringify({ code, vars: t.vars || [], uses: t.uses || [], check: t.check || "", solution: t.solution });
+  const run = async () => {
+    res.innerHTML = `<div class="verdict info">Running…${Py.readyP ? "" : " (starting Python – first time can take 20–40 seconds)"}</div>`;
+    try { showOut(res, await Py.run("run", ed.get())); } catch (e) { pyFailMsg(res, e); }
+  };
+  const check = async () => {
+    const cb = $('[data-act="check"]', card); cb.disabled = true;
+    res.innerHTML = `<div class="verdict info">Checking…${Py.readyP ? "" : " (starting Python – first time can take 20–40 seconds)"}</div>`;
+    let r;
+    try { r = await Py.run("grade", payload(ed.get())); } catch (e) { pyFailMsg(res, e); cb.disabled = false; return; }
+    showOut(res, r);
+    const already = isOk(t.id);
+    res.insertAdjacentHTML("beforeend", `<div class="verdict ${r.ok ? "ok" : "no"}">${r.ok ? "✓ " : "✗ "}${esc(r.msg || (r.ok ? "Correct!" : "Not correct yet."))}</div>`);
+    if (!already) await record(t.id, !!r.ok, ed.get());
+    st(); updateLessonCount(); cb.disabled = false;
+  };
+  const ed = makeEditor($(".edhost", card), LS.get(key, null) ?? t.start, { onRun: run, onCheck: check, onChange: v => LS.set(key, v), label: "Code for task " + (i + 1) });
+  $('[data-act="run"]', card).onclick = run;
+  $('[data-act="check"]', card).onclick = check;
+  const hb = $('[data-act="hint"]', card);
+  if (hb) hb.onclick = () => { extra.innerHTML = `<div class="hintbox"><b>Hint:</b> ${hintTxt}</div>`; };
+  $('[data-act="sol"]', card).onclick = () => {
+    extra.innerHTML = `<div class="solbox"><div class="lbl">REFERENCE SOLUTION</div>${codeBlock(t.solution)}<div class="row"><button class="btn ghost" data-act="copy">Copy into editor</button></div></div>`;
+    $('[data-act="copy"]', extra).onclick = () => { ed.set(t.solution); toast("Solution copied into the editor. Run it and study each line."); };
+  };
+  $('[data-act="reset"]', card).onclick = () => { if (confirm("Reset this task to the starting code? Your current code will be lost.")) { ed.set(t.start); LS.del(key); res.innerHTML = ""; extra.innerHTML = ""; } };
+  st();
+}
+function updateLessonCount(){
+  const L = LESSON[CURRENT]; if (!L) return;
+  const ids = lessonIds(L), el = $("#lessonCount");
+  if (el) el.textContent = `${doneIn(ids)} of ${ids.length} items complete`;
+}
+
+/* ---------- router ---------- */
+let CURRENT = "home";
+function show(id, opt = {}){
+  const [page, anchor] = (id || "home").split("/");
+  const L = LESSON[page];
+  const main = $("#main"), y = scrollY;
+  if (!opt.noScroll && L && page === CURRENT && anchor && document.getElementById(anchor)) { document.getElementById(anchor).scrollIntoView({ block: "start" }); return; }
+  CURRENT = L || page === "progress" ? page : "home";
+  if (L) { main.innerHTML = pageLesson(L); wireLesson(L, main); Py.boot().catch(() => {}); }
+  else if (CURRENT === "progress") main.innerHTML = pageProgress();
+  else { main.innerHTML = pageHome(); wireAuthCard(main); }
+  refreshTocCurrent();
+  document.title = (L ? L.title + " · " : CURRENT === "progress" ? "My progress · " : "") + "Scientific Python Lab";
+  document.body.classList.remove("nav-open");
+  if (opt.noScroll) scrollTo(0, y);
+  else if (anchor && document.getElementById(anchor)) setTimeout(() => document.getElementById(anchor).scrollIntoView({ block: "start" }), 30);
+  else scrollTo(0, 0);
+}
+function refreshTocCurrent(){ $$(".toc a").forEach(a => a.toggleAttribute("aria-current", a.dataset.id === CURRENT)); $$(".toc a[aria-current]").forEach(a => a.setAttribute("aria-current", "page")); }
+addEventListener("hashchange", () => show(location.hash.slice(1)));
+
+/* ---------- chrome ---------- */
+$("#menuBtn").onclick = () => document.body.classList.toggle("nav-open");
+$("#scrim").onclick = () => document.body.classList.remove("nav-open");
+$("#themeBtn").onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const nx = cur === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = nx; LS.set("sp-theme", nx);
+};
+{ const th = LS.get("sp-theme"); if (th) document.documentElement.dataset.theme = th; }
+
+renderToc(); refreshProgressUI(); renderUser();
+show(location.hash.slice(1) || "home");
+
+/* ---------- Firebase hookup ---------- */
+addEventListener("fb-ready", () => {
+  renderUser();
+  if (!window.FB) { show(CURRENT, { noScroll: true }); return; }
+  window.FB.onChange(async u => {
+    USER = u; PROFILE = null;
+    if (u) { try { PROFILE = await window.FB.getProfile(u.uid); } catch (e) { console.error(e); toast("Could not read your profile: " + (e.code || e.message)); } }
+    await afterLogin();
+  });
+});
+</script>
+<script type="module">
+/* Firebase connection. Loads only when config.js has a real config. */
+const V = "10.12.2";
+const cfg = window.FIREBASE_CONFIG || {};
+const P = (window.COLLECTION_PREFIX || "sp_");
+async function boot(){
+  if (window.FB_MOCK) { window.FB = window.FB_MOCK; return; }
+  if (!cfg.apiKey || String(cfg.apiKey).startsWith("PASTE")) { window.FB = null; return; }
+  try {
+    const A = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+    const U = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`);
+    const D = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+    const app = A.initializeApp(cfg, "sp-lab");
+    const auth = U.getAuth(app); const db = D.getFirestore(app);
+    const provider = new U.GoogleAuthProvider(); provider.setCustomParameters({ prompt: "select_account" });
+    try { await U.getRedirectResult(auth); } catch (e) {}
+    const get1 = async (c, id) => { const s = await D.getDoc(D.doc(db, P + c, id)); return s.exists() ? s.data() : null; };
+    const attemptDoc = (uid, id, meta, p, code) => {
+      const d = { uid, item: id, lesson: meta.lesson, kind: meta.kind, ok: !!p.ok, tries: p.tries | 0, at: D.serverTimestamp() };
+      if (code) d.code = String(code).slice(0, 19000);
+      return d;
+    };
+    window.FB = {
+      onChange: cb => U.onAuthStateChanged(auth, cb),
+      signIn: async () => {
+        try { await U.signInWithPopup(auth, provider); }
+        catch (e) {
+          if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment", "auth/cancelled-popup-request"].includes(e.code)) await U.signInWithRedirect(auth, provider);
+          else if (e.code !== "auth/popup-closed-by-user") throw e;
+        }
+      },
+      signOut: () => U.signOut(auth),
+      getProfile: uid => get1("users", uid),
+      enrollmentTaken: async enr => { const d = await get1("enrollments", enr); return !!d; },
+      register: async (uid, email, name, enr, division) => {
+        const b = D.writeBatch(db);
+        b.set(D.doc(db, P + "enrollments", enr), { uid, createdAt: D.serverTimestamp() });
+        b.set(D.doc(db, P + "users", uid), { uid, name, enrollment: enr, division: division || "", email, createdAt: D.serverTimestamp() });
+        b.set(D.doc(db, P + "progress", uid), { uid, name, enrollment: enr, items: {}, updatedAt: D.serverTimestamp() });
+        await b.commit();
+      },
+      getProgress: async uid => { const d = await get1("progress", uid); return d ? (d.items || {}) : {}; },
+      saveAttempt: async (uid, prof, id, meta, p, code) => {
+        const b = D.writeBatch(db);
+        b.set(D.doc(db, P + "attempts", `${uid}__${id}`), attemptDoc(uid, id, meta, p, code));
+        b.set(D.doc(db, P + "progress", uid), { uid, name: prof.name, enrollment: prof.enrollment, items: { [id]: { ok: !!p.ok, tries: p.tries | 0, at: p.at || Date.now() } }, updatedAt: D.serverTimestamp() }, { merge: true });
+        await b.commit();
+      },
+      uploadMany: async (uid, prof, map, codeOf) => {
+        const ids = Object.keys(map);
+        for (let i = 0; i < ids.length; i += 200) {
+          const b = D.writeBatch(db), items = {};
+          for (const id of ids.slice(i, i + 200)) {
+            const meta = window.__ITEMS ? window.__ITEMS[id] : { lesson: "", kind: "task" };
+            b.set(D.doc(db, P + "attempts", `${uid}__${id}`), attemptDoc(uid, id, meta, map[id], codeOf(id)));
+            items[id] = { ok: !!map[id].ok, tries: map[id].tries | 0, at: map[id].at || Date.now() };
+          }
+          b.set(D.doc(db, P + "progress", uid), { uid, name: prof.name, enrollment: prof.enrollment, items, updatedAt: D.serverTimestamp() }, { merge: true });
+          await b.commit();
+        }
+      }
+    };
+  } catch (e) { console.error("Firebase failed to load", e); window.FB = null; window.FB_ERROR = String(e); }
+}
+await boot();
+window.dispatchEvent(new Event("fb-ready"));
+</script>
+</body>
+</html>
