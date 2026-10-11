@@ -112,8 +112,8 @@ async function load(){
     const ok = id => items[id] && items[id].ok;
     const r = { uid: d.id, name: u.name, enrollment: u.enrollment, division: u.division || "", email: u.email, items,
       tasks: TASKS.filter(ok).length, mcq: MCQS.filter(ok).length,
-      tries: Object.values(items).reduce((a, x) => a + (x.tries || 0), 0),
-      sols: Object.keys(items).filter(k => k.startsWith("sol__")).length,
+      tries: IDS.reduce((a, id) => a + ((items[id] && items[id].tries) || 0), 0),
+      sols: Object.keys(items).filter(k => k.startsWith("sol__") && ITEMS[k.slice(5)]).length,
       last: Math.max(0, ...Object.values(items).map(x => x.at || 0)) };
     r.pct = Math.round(100 * (r.tasks + r.mcq) / IDS.length);
     PARTS.forEach(p => { const ids = partIds(p); r["p_" + p] = Math.round(100 * ids.filter(ok).length / ids.length); });

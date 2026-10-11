@@ -239,7 +239,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <body>
 <header class="top">
   <button class="menu" id="menuBtn" aria-label="Open lessons menu">☰</button>
-  <a class="ttl" href="#home">Scientific Python Lab<span>NumPy &amp; Pandas · slides 1–48 and practice</span></a>
+  <a class="ttl" href="#home">Scientific Python Lab<span>NumPy &amp; Pandas · learn, run and practise</span></a>
   <span class="pill" id="pyPill" title="In-browser Python status"><i></i><span class="lbl">Python: </span><span id="pyTxt">not started</span></span>
   <span id="userSlot"></span>
   <button class="iconbtn" id="themeBtn" aria-label="Toggle dark mode">◐</button>
@@ -302,7 +302,7 @@ const doneIn = ids => ids.filter(isOk).length;
 const SOL_LIMIT = Number.isFinite(+window.SOLUTION_LIMIT) ? +window.SOLUTION_LIMIT : 5;
 const solKey = id => "sol__" + id;
 const solSeen = id => !!PROG[solKey(id)];
-const solUsed = () => Object.keys(PROG).filter(k => k.startsWith("sol__")).length;
+const solUsed = () => Object.keys(PROG).filter(k => k.startsWith("sol__") && ITEMS[k.slice(5)]).length;
 const solLeft = () => Math.max(0, SOL_LIMIT - solUsed());
 async function recordSolution(id){
   if (solSeen(id)) return;
@@ -608,21 +608,21 @@ function pageHome(){
     plan += `<h3>${esc(part)}</h3><ol class="plan">`;
     for (const L of C.filter(l => l.part === part)) {
       const ids = lessonIds(L), k = doneIn(ids);
-      plan += `<li><a href="#${L.id}"><span class="n">${L.num}</span><b>${esc(L.title)}</b><span class="pc">${k}/${ids.length}<span class="bar"><i style="width:${pct(k, ids.length)}%"></i></span></span><span class="meta">${/^\d/.test(L.slides) ? "Slides " + esc(L.slides) + " · " : ""}${L.tasks.length} coding tasks${L.mcq.length ? " · " + L.mcq.length + " quick checks" : ""}</span></a></li>`;
+      plan += `<li><a href="#${L.id}"><span class="n">${L.num}</span><b>${esc(L.title)}</b><span class="pc">${k}/${ids.length}<span class="bar"><i style="width:${pct(k, ids.length)}%"></i></span></span><span class="meta">${L.tasks.length} coding tasks${L.mcq.length ? " · " + L.mcq.length + " quick checks" : ""}</span></a></li>`;
     }
     plan += `</ol>`;
   }
   return `<section class="sec hero">
     <p class="kicker">Scientific Computing using Python</p>
     <h1>NumPy and Pandas, hands on</h1>
-    <p class="lead">Theory, syntax and runnable examples for slides 1–48 of <i>Scientific Python Packages</i>, followed by extra Pandas manipulation and scenario practice. Every task is checked automatically by real Python running inside your browser.</p>
+    <p class="lead">Theory, syntax and runnable examples for NumPy and Pandas, followed by extra Pandas manipulation and scenario practice. Every task is checked automatically by real Python running inside your browser.</p>
     <p class="small muted">Poojan Shah · Assistant Professor, School of IT, AI &amp; Cyber Security · Rashtriya Raksha University</p>
     ${authCard()}
     <div class="stat"><div><b>${C.length}</b><span>lessons</span></div><div><b>${TASK_IDS.length}</b><span>auto-checked coding tasks</span></div><div><b>${MCQ_IDS.length}</b><span>quick-check questions</span></div><div><b>${pct(d, ALL_IDS.length)}%</b><span>your progress</span></div></div>
     <h3>How each lesson works</h3>
     <div class="steps">
-      <div><span class="st">1 · Read</span>Short theory and a syntax table taken from the slides.</div>
-      <div><span class="st">2 · Run</span>Run the slide's code, change it, and compare your output with the expected output.</div>
+      <div><span class="st">1 · Read</span>Short theory with examples and a syntax table.</div>
+      <div><span class="st">2 · Run</span>Run the example code, change it, and compare your output with the expected output.</div>
       <div><span class="st">3 · Check</span>Answer the quick-check questions to test your understanding.</div>
       <div><span class="st">4 · Practise</span>Write code for each task and press <b>Check</b>. You may open at most ${SOL_LIMIT} solutions in the whole course, so use them wisely.</div>
     </div>
@@ -661,7 +661,7 @@ function pageLesson(L){
   const idx = C.indexOf(L), prev = C[idx - 1], next = C[idx + 1];
   const ids = lessonIds(L);
   let h = `<section class="sec">${guestBanner()}
-    <p class="kicker">${esc(L.part)}${/^\d/.test(L.slides) ? " · Slides " + esc(L.slides) : ""} · Lesson ${L.num}</p>
+    <p class="kicker">${esc(L.part)} · Lesson ${L.num}</p>
     <h2>${esc(L.title)}</h2>
     <p class="small muted" id="lessonCount">${ids.length ? `${doneIn(ids)} of ${ids.length} items complete` : ""}</p>
     <div class="prose">${L.theory}</div>`;
