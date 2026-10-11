@@ -102,6 +102,8 @@ pre.diagram{background:var(--surface); border:1px solid var(--line); border-radi
 .box p{margin:0; color:var(--ink-2); font-size:15px}
 .box pre{margin:0; white-space:pre-wrap}
 .callout{border-left:4px solid var(--blue); background:var(--blue-soft); padding:10px 14px; border-radius:0 8px 8px 0; margin:14px 0; max-width:74ch}
+.callout.green{border-color:var(--green); background:var(--green-soft)}
+.prose h4{margin:16px 0 4px; font-size:17px}
 table.t{border-collapse:collapse; margin:10px 0 14px; font-size:15.5px; width:100%; max-width:760px}
 table.t th,table.t td{border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top}
 table.t th{background:var(--surface)}
@@ -256,6 +258,13 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <script src="content.js"></script>
 <script>
 "use strict";
+if (!Array.isArray(window.COURSE)) {
+  document.body.innerHTML = '<div style="max-width:640px;margin:60px auto;padding:20px;font-family:sans-serif;line-height:1.6;border:1px solid #dce3eb;border-radius:12px">' +
+    '<h2 style="margin-top:0">Course content not found</h2><p>This page needs <b>content.js</b> (and <b>config.js</b>) in the same folder. ' +
+    'You are probably viewing <b>index.html</b> on its own in a file preview.</p><p>Open the live site link, or open <b>index.html</b> from the <b>site</b> folder where all files are together. ' +
+    'On GitHub, make sure <b>content.js</b> was uploaded next to index.html.</p></div>';
+  throw new Error("content.js is missing – open the page with its other files");
+}
 const C = window.COURSE;
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => [...el.querySelectorAll(s)];
@@ -290,6 +299,28 @@ const saveLocal = () => LS.set(progKey(), PROG);
 const isOk = id => !!(PROG[id] && PROG[id].ok);
 const tries = id => (PROG[id] && PROG[id].tries) || 0;
 const doneIn = ids => ids.filter(isOk).length;
+const SOL_LIMIT = Number.isFinite(+window.SOLUTION_LIMIT) ? +window.SOLUTION_LIMIT : 5;
+const solKey = id => "sol__" + id;
+const solSeen = id => !!PROG[solKey(id)];
+const solUsed = () => Object.keys(PROG).filter(k => k.startsWith("sol__")).length;
+const solLeft = () => Math.max(0, SOL_LIMIT - solUsed());
+async function recordSolution(id){
+  if (solSeen(id)) return;
+  const v = { ok: false, tries: 0, at: Date.now(), sol: true };
+  PROG[solKey(id)] = v; saveLocal();
+  if (CLOUD && window.FB && window.FB.saveItems) {
+    try { await window.FB.saveItems(USER.uid, PROFILE, { [solKey(id)]: v }); }
+    catch (e) { console.error(e); toast("Could not save to the server (" + (e.code || e.message) + ")."); }
+  }
+}
+function refreshSolButtons(){
+  $$('[data-act="sol"]').forEach(b => {
+    const id = b.closest("[data-task]")?.dataset.task; if (!id) return;
+    const free = isOk(id) || solSeen(id);
+    b.textContent = free ? "Solution" : `Solution (${solLeft()} left)`;
+    b.title = free ? "Show the reference solution" : `Viewing uses 1 of your ${SOL_LIMIT} solution views (${solLeft()} left)`;
+  });
+}
 
 async function record(id, ok, code){
   const p = PROG[id] || { ok: false, tries: 0 };
@@ -555,6 +586,9 @@ async function afterLogin(merge){
     const guest = LS.get("sp-prog-guest", {});
     const up = {};
     for (const [id, p] of Object.entries(guest)) if (ITEMS[id] && p.ok && !isOk(id)) { up[id] = p; PROG[id] = p; }
+    const solUp = {};
+    for (const [k, v] of Object.entries(guest)) if (k.startsWith("sol__") && !PROG[k]) { solUp[k] = v; PROG[k] = v; }
+    if (Object.keys(solUp).length && window.FB.saveItems) { try { await window.FB.saveItems(USER.uid, PROFILE, solUp); } catch (e) { console.error(e); } }
     if (Object.keys(up).length) {
       try { await window.FB.uploadMany(USER.uid, PROFILE, up, id => LS.get("sp-code-" + id, null)); toast(`Uploaded ${Object.keys(up).length} items you completed as a guest.`); LS.set("sp-prog-guest", {}); }
       catch (e) { console.error(e); }
@@ -590,7 +624,7 @@ function pageHome(){
       <div><span class="st">1 · Read</span>Short theory and a syntax table taken from the slides.</div>
       <div><span class="st">2 · Run</span>Run the slide's code, change it, and compare your output with the expected output.</div>
       <div><span class="st">3 · Check</span>Answer the quick-check questions to test your understanding.</div>
-      <div><span class="st">4 · Practise</span>Write code for each task and press <b>Check</b>. The solution unlocks after 3 attempts.</div>
+      <div><span class="st">4 · Practise</span>Write code for each task and press <b>Check</b>. You may open at most ${SOL_LIMIT} solutions in the whole course, so use them wisely.</div>
     </div>
     <p class="small muted">Tip: <code>Ctrl</code> + <code>Enter</code> runs the code, <code>Ctrl</code> + <code>Shift</code> + <code>Enter</code> checks it. <code>np</code> and <code>pd</code> are already imported, but it is good practice to write the imports yourself.</p>
     ${plan}
@@ -611,7 +645,7 @@ function pageProgress(){
   const dt = doneIn(TASK_IDS), dq = doneIn(MCQ_IDS);
   return `<section class="sec"><p class="kicker">Progress</p><h2>My progress</h2>
     ${USER && PROFILE ? `<p class="small">Saved to the class record for <b>${esc(PROFILE.name)}</b> (${esc(PROFILE.enrollment)}).</p>` : `<p class="small muted">Guest progress – saved only in this browser.${window.FB ? " Sign in to submit it." : ""}</p>`}
-    <div class="stat"><div><b>${dt}/${TASK_IDS.length}</b><span>coding tasks passed</span></div><div><b>${dq}/${MCQ_IDS.length}</b><span>quick checks correct</span></div><div><b>${pct(dt + dq, ALL_IDS.length)}%</b><span>overall</span></div></div>
+    <div class="stat"><div><b>${dt}/${TASK_IDS.length}</b><span>coding tasks passed</span></div><div><b>${dq}/${MCQ_IDS.length}</b><span>quick checks correct</span></div><div><b>${pct(dt + dq, ALL_IDS.length)}%</b><span>overall</span></div><div><b>${solUsed()}/${SOL_LIMIT}</b><span>solution views used</span></div></div>
     <p class="small muted">Green = done · amber = attempted · grey = not started. Click a square to jump to it.</p>
     <div class="tablewrap"><table class="ptable">${rows}</table></div></section>`;
 }
@@ -723,9 +757,7 @@ function renderTask(card, t, i){
     const s = $(".status", card), ok = isOk(t.id), n = tries(t.id);
     s.className = "status " + (ok ? "done" : n ? "tried" : "");
     s.textContent = ok ? `✓ Passed${n > 1 ? " · " + n + " attempts" : ""}` : n ? `${n} attempt${n > 1 ? "s" : ""}` : "Not attempted";
-    const sb = $('[data-act="sol"]', card);
-    const unlocked = ok || n >= 3;
-    sb.disabled = !unlocked; sb.title = unlocked ? "Show the reference solution" : `Unlocks after 3 checks (${n}/3)`;
+    refreshSolButtons();
   };
   const payload = code => JSON.stringify({ code, vars: t.vars || [], uses: t.uses || [], check: t.check || "", solution: t.solution });
   const run = async () => {
@@ -748,7 +780,16 @@ function renderTask(card, t, i){
   $('[data-act="check"]', card).onclick = check;
   const hb = $('[data-act="hint"]', card);
   if (hb) hb.onclick = () => { extra.innerHTML = `<div class="hintbox"><b>Hint:</b> ${hintTxt}</div>`; };
-  $('[data-act="sol"]', card).onclick = () => {
+  $('[data-act="sol"]', card).onclick = async () => {
+    if (!isOk(t.id) && !solSeen(t.id)) {
+      if (solLeft() <= 0) {
+        extra.innerHTML = `<div class="hintbox"><b>No solution views left.</b> You have used all ${SOL_LIMIT} of your solution views. Try the <b>Hint</b>, read the error message carefully, or ask your teacher.</div>`;
+        return;
+      }
+      if (!confirm(`You can see at most ${SOL_LIMIT} solutions in the whole course, and you have ${solLeft()} left.\n\nOpening this solution uses 1. Your teacher can see which solutions you opened.\n\nOpen the solution?`)) return;
+      await recordSolution(t.id);
+      refreshSolButtons();
+    }
     extra.innerHTML = `<div class="solbox"><div class="lbl">REFERENCE SOLUTION</div>${codeBlock(t.solution)}<div class="row"><button class="btn ghost" data-act="copy">Copy into editor</button></div></div>`;
     $('[data-act="copy"]', extra).onclick = () => { ed.set(t.solution); toast("Solution copied into the editor. Run it and study each line."); };
   };
@@ -854,6 +895,7 @@ async function boot(){
         b.set(D.doc(db, P + "progress", uid), { uid, name: prof.name, enrollment: prof.enrollment, items: { [id]: { ok: !!p.ok, tries: p.tries | 0, at: p.at || Date.now() } }, updatedAt: D.serverTimestamp() }, { merge: true });
         await b.commit();
       },
+      saveItems: (uid, prof, items) => D.setDoc(D.doc(db, P + "progress", uid), { uid, name: prof.name, enrollment: prof.enrollment, items, updatedAt: D.serverTimestamp() }, { merge: true }),
       uploadMany: async (uid, prof, map, codeOf) => {
         const ids = Object.keys(map);
         for (let i = 0; i < ids.length; i += 200) {

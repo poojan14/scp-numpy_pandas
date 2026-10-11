@@ -68,6 +68,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const toast = m => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); };
 const C = window.COURSE;
+if (!Array.isArray(C)) { document.querySelector("#main").innerHTML = `<div class="card"><h2>Course content not found</h2><p>dashboard.html needs <b>content.js</b> and <b>config.js</b> in the same folder. Open it from the live site link, not as a single-file preview.</p></div>`; throw new Error("content.js missing"); }
 const ITEMS = {}; C.forEach(L => { L.tasks.forEach((t, i) => ITEMS[t.id] = { kind: "task", L, n: i + 1, title: t.t }); L.mcq.forEach((q, i) => ITEMS[q.id] = { kind: "mcq", L, n: i + 1, title: "Quick check " + (i + 1) }); });
 const IDS = Object.keys(ITEMS), TASKS = IDS.filter(i => ITEMS[i].kind === "task"), MCQS = IDS.filter(i => ITEMS[i].kind === "mcq");
 const PARTS = [...new Set(C.map(L => L.part))];
@@ -112,6 +113,7 @@ async function load(){
     const r = { uid: d.id, name: u.name, enrollment: u.enrollment, division: u.division || "", email: u.email, items,
       tasks: TASKS.filter(ok).length, mcq: MCQS.filter(ok).length,
       tries: Object.values(items).reduce((a, x) => a + (x.tries || 0), 0),
+      sols: Object.keys(items).filter(k => k.startsWith("sol__")).length,
       last: Math.max(0, ...Object.values(items).map(x => x.at || 0)) };
     r.pct = Math.round(100 * (r.tasks + r.mcq) / IDS.length);
     PARTS.forEach(p => { const ids = partIds(p); r["p_" + p] = Math.round(100 * ids.filter(ok).length / ids.length); });
@@ -145,12 +147,12 @@ const fmt = t => t ? new Date(t).toLocaleString([], { dateStyle: "medium", timeS
 function draw(){
   const rows = filtered(), v = $("#view");
   if (TAB === "students") {
-    const cols = [["name", "Name"], ["enrollment", "Enrollment"], ["division", "Division"], ["tasks", `Tasks /${TASKS.length}`], ["mcq", `Quick /${MCQS.length}`], ["pct", "Overall"], ...PARTS.map(p => ["p_" + p, p]), ["tries", "Checks"], ["last", "Last active"]];
+    const cols = [["name", "Name"], ["enrollment", "Enrollment"], ["division", "Division"], ["tasks", `Tasks /${TASKS.length}`], ["mcq", `Quick /${MCQS.length}`], ["pct", "Overall"], ...PARTS.map(p => ["p_" + p, p]), ["tries", "Checks"], ["sols", "Solutions seen"], ["last", "Last active"]];
     rows.sort((a, b) => { const x = a[SORT.k], y = b[SORT.k]; return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), undefined, { numeric: true })) * SORT.dir; });
     v.innerHTML = `<div class="wrap"><table><thead><tr>${cols.map(([k, l]) => `<th data-k="${k}">${esc(l)}${SORT.k === k ? (SORT.dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>
       <td><span class="link" data-uid="${r.uid}">${esc(r.name)}</span><br><span class="muted" style="font-size:12.5px">${esc(r.email)}</span></td><td>${esc(r.enrollment)}</td><td>${esc(r.division)}</td>
       <td class="num">${r.tasks}</td><td class="num">${r.mcq}</td><td><span class="bar"><i style="width:${r.pct}%"></i></span>${r.pct}%</td>
-      ${PARTS.map(p => `<td class="num">${r["p_" + p]}%</td>`).join("")}<td class="num">${r.tries}</td><td>${fmt(r.last)}</td></tr>`).join("") || `<tr><td colspan="${cols.length}" class="muted">No students yet.</td></tr>`}</tbody></table></div>`;
+      ${PARTS.map(p => `<td class="num">${r["p_" + p]}%</td>`).join("")}<td class="num">${r.tries}</td><td class="num">${r.sols}</td><td>${fmt(r.last)}</td></tr>`).join("") || `<tr><td colspan="${cols.length}" class="muted">No students yet.</td></tr>`}</tbody></table></div>`;
     v.querySelectorAll("th").forEach(th => th.onclick = () => { const k = th.dataset.k; SORT = { k, dir: SORT.k === k ? -SORT.dir : (["name", "enrollment", "division"].includes(k) ? 1 : -1) }; draw(); });
     v.querySelectorAll("[data-uid]").forEach(s => s.onclick = () => detail(ROWS.find(r => r.uid === s.dataset.uid)));
   } else if (TAB === "tasks") {
@@ -170,13 +172,14 @@ async function detail(r){
   let code = {};
   try { const s = await D.getDocs(D.query(D.collection(db, P + "attempts"), D.where("uid", "==", r.uid))); s.forEach(d => { const x = d.data(); code[x.item] = x; }); }
   catch (e) { toast("Could not load code: " + (e.code || e.message)); }
-  let h = `<p>${esc(r.email)}${r.division ? " · " + esc(r.division) : ""} · ${r.tasks}/${TASKS.length} tasks · ${r.mcq}/${MCQS.length} quick checks · ${r.pct}% overall</p>`;
+  let h = `<p>${esc(r.email)}${r.division ? " · " + esc(r.division) : ""} · ${r.tasks}/${TASKS.length} tasks · ${r.mcq}/${MCQS.length} quick checks · ${r.pct}% overall · ${r.sols} solution${r.sols === 1 ? "" : "s"} seen</p>`;
   for (const L of C) {
     const ids = [...L.tasks.map(t => t.id), ...L.mcq.map(q => q.id)]; if (!ids.length) continue;
     h += `<div class="les">${esc(L.title)} – ${ids.filter(id => r.items[id] && r.items[id].ok).length}/${ids.length}</div>`;
     for (const id of ids) {
       const it = ITEMS[id], p = r.items[id], c = code[id];
-      const st = p ? (p.ok ? `<span class="ok">✓ passed</span>` : `<span class="tr">attempted</span>`) : `<span class="no">not started</span>`;
+      const seen = r.items["sol__" + id] ? ` <span class="tr">· solution seen</span>` : "";
+      const st = (p ? (p.ok ? `<span class="ok">✓ passed</span>` : `<span class="tr">attempted</span>`) : `<span class="no">not started</span>`) + seen;
       h += `<div class="it"><span>${it.kind === "task" ? "Task " + it.n : "Q" + it.n}</span><span>${esc(it.title)}</span>${st}<span class="muted">${p ? p.tries + " check" + (p.tries > 1 ? "s" : "") : ""}</span>${c && c.code ? `<pre class="code">${esc(c.code)}</pre>` : ""}</div>`;
     }
   }
@@ -184,8 +187,8 @@ async function detail(r){
 }
 function exportCsv(){
   const rows = filtered();
-  const head = ["Name", "Enrollment", "Division", "Email", "Tasks passed", "Quick checks correct", "Overall %", ...PARTS.map(p => p + " %"), "Total checks", "Last active", ...IDS.map(id => { const it = ITEMS[id]; return it.L.id + ":" + (it.kind === "task" ? "T" : "Q") + it.n; })];
-  const lines = [head, ...rows.map(r => [r.name, r.enrollment, r.division, r.email, r.tasks, r.mcq, r.pct, ...PARTS.map(p => r["p_" + p]), r.tries, r.last ? new Date(r.last).toISOString() : "", ...IDS.map(id => r.items[id] ? (r.items[id].ok ? 1 : 0) : "")])];
+  const head = ["Name", "Enrollment", "Division", "Email", "Tasks passed", "Quick checks correct", "Overall %", ...PARTS.map(p => p + " %"), "Total checks", "Solutions seen", "Last active", ...IDS.map(id => { const it = ITEMS[id]; return it.L.id + ":" + (it.kind === "task" ? "T" : "Q") + it.n; })];
+  const lines = [head, ...rows.map(r => [r.name, r.enrollment, r.division, r.email, r.tasks, r.mcq, r.pct, ...PARTS.map(p => r["p_" + p]), r.tries, r.sols, r.last ? new Date(r.last).toISOString() : "", ...IDS.map(id => r.items[id] ? (r.items[id].ok ? 1 : 0) : "")])];
   const csv = lines.map(l => l.map(x => { const s = String(x ?? ""); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(",")).join("\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));
   a.download = "scientific-python-progress-" + new Date().toISOString().slice(0, 10) + ".csv"; a.click();
